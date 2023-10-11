@@ -22,11 +22,11 @@ library(tidyverse)
 
 # read in sensor, sample, and flow data:
 
-Sensor<-read.csv("C:/PhD/FOR797/W1_Sensor_Data_Exploration/HBF_WQual_Level4.csv")
+Sensor<-read.csv("Raw_Data/HBF_WQual_Level4.csv")
 
-Sample<-read.csv("C:/PhD/FOR797/W1_Sensor_Data_Exploration/HubbardBrook_weekly_stream_chemistry.csv")
+Sample<-read.csv("Raw_Data/HubbardBrook_weekly_stream_chemistry.csv")
 
-Flow<-read.csv("C:/PhD/FOR797/W1_Sensor_Data_Exploration/w3_stmflow_2013-2022_5min.csv")
+Flow<-read.csv("Raw_Data/w3_stmflow_2013-2022_5min.csv")
 
 # convert dates:
 # note for the sample dataframe, the DateTime column needs to be created first by pasting the date and time 
@@ -292,15 +292,9 @@ RF_plot%>%filter(Consit %in% class_consit)%>%
   geom_point()+
   facet_wrap('Consit_Rsq',scales = 'free')
 
-# check R squared of predicted model:
+# save workspace
 
-x<-l.RF_df[[5]][complete.cases(l.RF_df[[5]]),]
-
-y<-predict(l.RF[[5]], x[,-1])
-
-y==l.RF[[5]]$predicted
-
-
+save.image(file = 'C:/PhD/FOR797/FOR797_git/Processed_Data/WS3_RF_predict.Rdata')
 
 
 
