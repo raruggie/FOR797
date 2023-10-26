@@ -488,7 +488,7 @@ WHB <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
 ## Save:
 
-save.image(file = 'C:/PhD/FOR797/FOR797_git/Processed_Data/Import_Data.Rdata')
+save.image(file = 'Processed_Data/Import_Data.Rdata')
 
 # Load back in:
 
