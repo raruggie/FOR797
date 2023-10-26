@@ -8,7 +8,11 @@ library(randomForest)
 library(lubridate)
 library(tidyverse)
 
+<<<<<<< HEAD
 print('Ryan')
+=======
+print('Hollis was here')
+>>>>>>> d1ced75c09805b625f373294c00c14b318f99ae8
 
 ####################### Goal of code #######################
 
