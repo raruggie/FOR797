@@ -1,5 +1,5 @@
 library(tidyverse)
-
+library(data.table)
 ######################################
 ### Hubbard Brook Grab Sample Data ###
 ######################################
@@ -330,6 +330,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 BDC <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -347,6 +350,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 BEF <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -364,6 +370,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 DCF <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -381,6 +390,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 GOF <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -398,6 +410,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 HBF <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -409,12 +424,15 @@ HBF <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 TemporaryDis <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Discharge%20Storm%20ID.csv")
 TemporaryfDOM <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20fDOM.csv")
 TemporaryNitrate <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Nitrate.csv")
-TemporarySpecCond <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Nitrate.csv")
-TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Nitrate.csv")
+TemporarySpecCond <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Spec%20Cond.csv")
+TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d493782ff321ca5f95f28/data/contents/LMP/LMP%20Temperature.csv")
 
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 LMP <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -432,6 +450,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 MCQ <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -449,6 +470,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 SBM <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -466,6 +490,9 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 TPB <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
 
@@ -483,15 +510,123 @@ TemporaryTemp <- read.csv("https://www.hydroshare.org/resource/8217eab0997d49378
 TemporaryList <- list(TemporaryDis, TemporaryfDOM, TemporaryNitrate, TemporarySpecCond, TemporaryTemp)
 Temporarydf <- TemporaryList %>% reduce(full_join, by='Date.Time.EST')
 Temporarydf$Date.Time.EST<-as.POSIXct(Temporarydf$Date.Time.EST, format = '%m/%d/%Y %H:%M')
+Temporarydf$DOY <- yday(Temporarydf$Date.Time.EST)
+Temporarydf$DOYSin <- sin((Temporarydf$DOY-173) * (2*pi)/365.25)
+Temporarydf$DOYCos <- cos((Temporarydf$DOY-173) * (2*pi)/365.25)
 drop <- c("Site", "Site.x", "Site.x.x","Site.y", "Site.y.y", "StormID", "Q_Ls")
 WHB <- na.omit(Temporarydf[,!(names(Temporarydf) %in% drop)])
+
+
+
+###################
+### W3 Cleaning ###
+###################
+
+
+
+dfSensor<-read.csv('Raw_Data/HBF_WQual_Level4.csv')
+dfSensor$DATETIME<-as.POSIXct(dfSensor$Date, format = '%m/%d/%Y %H:%M')
+dfSensor$DOY <- yday(dfSensor$DATETIME)
+dfSensor$DOYSin <- sin((dfSensor$DOY-173) * (2*pi)/365.25) #Day 173 = June 22nd. DOYSin of 1 is around Sept 21st
+dfSensor$DOYCos <- cos((dfSensor$DOY-173) * (2*pi)/365.25)
+dfSensor$BkpSenseDate <- dfSensor$DATETIME
+
+#Note the difference between the two lines of code. !names omits columns. names includes them
+dfGrab <- dfGrab[ , !names(dfGrab) %in% c('site', 'date', 'timeEST', 'barcode', 'fieldCode', 'hydroGraph',
+                                          'notes', 'uniqueID', 'waterYr', 'duplicate', 'sampleType', 'canonical',
+                                          'pHmetrohm', 'ANC960', 'ANCMet', 'DIC', 'Al_ferron', 'temp', 'pH', 'spCond', 'gageHt', 'flowGageHt' )]
+
+dfSensor <- dfSensor[ , names(dfSensor) %in% c('DATETIME', 'Nitrate_mg', 'TempC', 'Conductivity', 'SpConductivity', 'pH',
+                                               'ODOPerCent', 'ODOMGL', 'TurbidityFNU', 'TurbidityRaw', 'FDOMRFU',
+                                               'FDOMQSU', 'USFS_Stage', 'USFS_Q', 'NO3_ed_mgL', 'ABS254_SUNA', 'FDOM_ed_QSU', 'DOYSin', 'DOYCos','BkpSenseDate')]
+
+# Data tables are used here for the join function below
+dtSensor <- as.data.table(dfSensor)
+dtDis15 <- as.data.table(DfDis15)
+
+# USE THIS YOU DIPSHIT
+dfDisSense <- dtDis15[dtSensor, on = .(DATETIME), roll=TRUE]
+dfDisSense$TimeDiff <- abs(dfDisSense$BkpSenseDate - dfDisSense$BkpDisDate)
+dfDisSense <- dfDisSense %>% drop_na()
+class(as.data.frame(dfDisSense))
+
+
+dfDisSenseGrab <- dfDisSense[dfGrab, on = .(DATETIME), roll = TRUE]
+#colnames(dfDisSenseGrab)
+dfDisSenseGrab$SenseGrabTimeDiff <- abs(dfDisSenseGrab$BkpSenseDate - dfDisSenseGrab$BkpGrabDate)
+dfDisSenseGrab$DisGrabTimeDiff <- abs(dfDisSenseGrab$BkpDisDate - dfDisSenseGrab$BkpGrabDate)
+dfDisSenseGrab <- subset(dfDisSenseGrab, SenseGrabTimeDiff  < 30)
+dfDisSenseGrab <- subset(dfDisSenseGrab, DisGrabTimeDiff  < 30)
+dfDisSenseGrab <- dfDisSenseGrab %>% drop_na()
+sapply(dfDisSenseGrab, function(x) sum(is.na(x)))
+
+
+setnames(dfDisSense, old = c("FDOMQSU","Nitrate_mg"), 
+         new = c("FDOM_corrected_QSU","NO3_corrected_mgL"))
+###
+setnames(dfDisSenseGrab, old = c("FDOMQSU","Nitrate_mg"), 
+         new = c("FDOM_corrected_QSU","NO3_corrected_mgL"))
+
+
+W3TrainingData <- dfDisSenseGrab
+W3SensorData <- dfDisSense
+
+
+
+
+
+
+
+##############################
+### Import Hydroshare Grab ###
+##############################
+
+dfHydroGrab<-read.csv('Raw_Data/Hydroshare Grab Samples.csv')
+
+dfHydroGrab <- dfHydroGrab[ , names(dfHydroGrab) %in% c("Sample.Name", "DateTime", "Cl..mg.Cl.L.", 
+                                                        "NO3..mg.N.L.", "SO4..mg.S.L.", "Na..mg.Na.L.", "K..mg.K.L.", 
+                                                        "Mg..mg.Mg.L.", "Ca..mg.Ca.L.",  
+                                                        "NH4..ug.N.L.", "DON.mg.L", "PO4..ug.P.L.")]
+
+setnames(dfHydroGrab, old = c("DateTime", "Cl..mg.Cl.L.", 
+                             "NO3..mg.N.L.", "SO4..mg.S.L.", "Na..mg.Na.L.", "K..mg.K.L.", 
+                             "Mg..mg.Mg.L.", "Ca..mg.Ca.L.",  
+                             "NH4..ug.N.L.", "DON.mg.L", "PO4..ug.P.L."), 
+         new = c("DATETIME", "Cl", "NO3", "SO4", "Na", "K", 
+                 "Mg", "Ca", "NH4", "DON", "PO4"))
+
+#What do we lose? All three Al, DOC, TDN, SiO2, Mn, Fe, F
+
+dfHydroGrab$NO3 <- (dfHydroGrab$NO3 * (62.0049/14.0067))
+dfHydroGrab$SO4 <- (dfHydroGrab$SO4 * (96.06/32.065))
+dfHydroGrab$NH4 <- (dfHydroGrab$NH4 * (18.04/14.0067))
+dfHydroGrab$PO4 <- ((dfHydroGrab$PO4 * (94.9714/30.973762))/1000)
+
+dfHydroGrab$DATETIME<-as.POSIXct(dfHydroGrab$DATETIME, format = '%m/%d/%Y %H:%M')
+
+
+dfHydroGrab <- dfHydroGrab %>%
+  mutate(Sample.Name = recode(Sample.Name, BDC0.30 = 'BDC', DCF03 = 'DCF', LMP72= 'LMP', 
+                         SBM0.2 = 'SBM', WHB01 = 'WHB'))
+
+
+
+###################################################################
+### Below this line is the code the prepares to save the object ###
+###################################################################
+
+
+# Cleanup
+rm(list = c('drop', 'Temporarydf', 'TemporaryList', 'TemporaryDis', 
+            'TemporaryfDOM', 'TemporaryNitrate', 'TemporarySpecCond', 'TemporaryTemp', 
+            'inUrl2', 'inUrl12', 'infile12', 'infile2', 'dt2', 'dt12', 'dfDis', 
+            'DfDis15', 'dfGrab', 'dfDisSense', 'dfDisSenseGrab', 'dfSensor', 'dtDis15', 'dtSensor'))
+
+
 
 ## Save:
 
 save.image(file = 'Processed_Data/Import_Data.Rdata')
 
-# Load back in:
-
-load('Processed_Data/Import_Data.Rdata')
 
 
