@@ -65,4 +65,31 @@ for (i in ListOfSolutes) {
 ###              - Also used to calculate NSE if the loop above doesn't do what you need. ###
 #############################################################################################
 
+# Make Plots - set up the dataframe for ggplot. To do this:
+
+# subset just the constituent date and columns for obs and pred:
+
+df.pred<-dfSensorGrab[,c(1,9:18)]
+df.obs<-dfSensorGrab[,c(1,21:30)]
+
+# pivot longer:
+
+df.pred<-pivot_longer(df.pred, cols = 2:last_col(), names_to = 'Consit', values_to = 'Pred_Value')
+df.obs<-pivot_longer(df.obs, cols = 2:last_col(), names_to = 'Consit', values_to = 'Obs_Value')
+
+# remove the pred prefix from the pred df:
+
+df.pred$Consit<-gsub('Pred', '', df.pred$Consit)
+
+# merge these two dataframes:
+
+df.plot<-left_join(df.pred, df.obs, by = c('DATETIME', 'Consit'))
+
+# make plot:
+
+ggplot(df.plot, aes(x = Obs_Value, y = Pred_Value))+
+  geom_point()+
+  geom_abline(slope=1, linetype = "dashed", color="Red")+
+  facet_wrap('Consit', scales = 'free')+
+  ggtitle(varWatershed)
 
