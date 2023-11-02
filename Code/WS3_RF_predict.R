@@ -8,11 +8,6 @@ library(randomForest)
 library(lubridate)
 library(tidyverse)
 
-<<<<<<< HEAD
-print('Ryan')
-=======
-print('Hollis was here')
->>>>>>> d1ced75c09805b625f373294c00c14b318f99ae8
 
 ####################### Goal of code #######################
 
@@ -300,7 +295,7 @@ RF_plot%>%filter(Consit %in% class_consit)%>%
 
 # save workspace
 
-save.image(file = 'C:/PhD/FOR797/FOR797_git/Processed_Data/WS3_RF_predict.Rdata')
+# save.image(file = 'Processed_Data/WS3_RF_predict.Rdata')
 
 
 
