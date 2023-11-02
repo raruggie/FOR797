@@ -11,8 +11,8 @@ library(ie2misc)
 load(file = 'Processed_Data/Data&Models.Rdata')
 
 # Change the watershed name below when you start
-dfWatershed <- TPB
-varWatershed <- 'TPB'
+dfWatershed <- MCQ
+varWatershed <- 'MCQ'
 
 ################################################################################
 ### You shouldn't need to alter the code in the next section. You can scroll ###
@@ -64,4 +64,9 @@ for (i in ListOfSolutes) {
 ###              - Also used to calculate NSE if the loop above doesn't do what you need. ###
 #############################################################################################
 
+library(ggplot2)
+ggplot(dfSensorGrab, aes(x=NO3, y=PredNO3)) + 
+  geom_point()
 
+ggplot(dfSensorGrab, aes(x=Na, y=PredNa)) + 
+  geom_point()
