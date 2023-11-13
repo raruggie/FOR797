@@ -6,13 +6,14 @@ library(data.table)
 library(randomForest)
 library(VSURF)
 library(ie2misc)
+library(plotly)
 
 # Run this line of code everytime you switch to a new watershed
 load(file = 'Processed_Data/Data&Models.Rdata')
 
 # Change the watershed name below when you start
-dfWatershed <- MCQ
-varWatershed <- 'MCQ'
+dfWatershed <- DCF
+varWatershed <- 'DCF'
 
 ################################################################################
 ### You shouldn't need to alter the code in the next section. You can scroll ###
@@ -47,6 +48,7 @@ dfSensorGrab <- dfSensorGrab %>% drop_na()
 
 # This loop calculates the NSE values for each solute. For now it simply prints the results.
 # In the future we'll update it to store them somewhere useful
+
 for (i in ListOfSolutes) {
   TempNSE <- eval(parse(text = paste("vnse(dfSensorGrab$Pred", i ,", dfSensorGrab$", i , ")", sep = "")))
   print(paste('The NSE for', i, "is:", round(TempNSE, digits=2)))
@@ -70,3 +72,20 @@ ggplot(dfSensorGrab, aes(x=NO3, y=PredNO3)) +
 
 ggplot(dfSensorGrab, aes(x=Na, y=PredNa)) + 
   geom_point()
+
+importance(Modeled_Na)
+
+###
+data_test <- dfSensorGrab[ , c("Ca", "PredCa")]
+
+
+
+#data_test$Pred <- predict(lmPred, data_test)
+lmPred2 = lm(PredCa ~ Ca, data = data_test)
+summary(lmPred2)
+fig<-plot_ly(data = data_test, x = ~Ca, y = ~PredCa, type = 'scatter')
+fig <- fig %>% layout(title = varWatershed, yaxis = list(title = 'Predicted Ca (mg/L)'), 
+                      xaxis = list(title = 'Grab Sample Ca (mg/L)'))
+fig
+###
+#x = ~NO3_corrected_mgL
