@@ -12,8 +12,8 @@ load(file = 'Processed_Data/Data&Models.Rdata')
 
 
 # Change the watershed name below when you start
-dfWatershed <- TPB
-varWatershed <- 'TPB'
+dfWatershed <- LMP
+varWatershed <- 'LMP'
 
 ################################################################################
 ### You shouldn't need to alter the code in the next section. You can scroll ###
@@ -48,11 +48,14 @@ dfSensorGrab <- dfSensorGrab %>% drop_na()
 
 # This loop calculates the NSE values for each solute. For now it simply prints the results.
 # In the future we'll update it to store them somewhere useful
+
+NSE<-c()
+
 for (i in ListOfSolutes) {
   TempNSE <- eval(parse(text = paste("vnse(dfSensorGrab$Pred", i ,", dfSensorGrab$", i , ")", sep = "")))
   print(paste('The NSE for', i, "is:", round(TempNSE, digits=2)))
+  NSE<-c(NSE,TempNSE)
 }
-
 
 #############################################################################################
 ### You can begin to code below this line. Useful parameters are as follows:              ###
