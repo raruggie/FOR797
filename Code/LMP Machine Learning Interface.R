@@ -12,8 +12,8 @@ library(plotly)
 load(file = 'Processed_Data/LMPData&Models.Rdata')
 
 # Change the watershed name below when you start
-dfWatershed <- BEF
-varWatershed <- 'BEF'
+dfWatershed <- LMP
+varWatershed <- 'LMP'
 
 ################################################################################
 ### You shouldn't need to alter the code in the next section. You can scroll ###
