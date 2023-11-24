@@ -343,17 +343,113 @@ df.Climate_features<-df.Climate_features[-1,]
 # save(df.Climate_features, file = 'Processed_Data/df.Climate_features.Rdata')
 load('Processed_Data/df.Climate_features.Rdata')
 
+#### Elevation: ####
 
+# download NED for each watershed in sf df:
 
+l.elevation<-lapply(seq_along(df.sf$Name), \(i) get_ned(df.sf[i,], label = paste(df.sf$Name[i], '2')))
 
+# create function of functions for extracting elevation metrics:
 
+f <- function(x, na.rm = T) {
+  c(mean=mean(x, na.rm = na.rm),
+    range=max(x, na.rm = na.rm)-min(x, na.rm = na.rm),
+    sd=sd(x, na.rm = na.rm)
+  )
+}
 
+# reproject NH basins to DEM crs:
 
+vect.NH.proj<-terra::project(vect.NH, crs(l.elevation[[1]]))
 
+# extract the metrics over each watershed using the function above:
 
+l.elevation <- lapply(seq_along(df.sf$Name), \(i) as.data.frame(terra::extract(l.elevation[[i]], vect.NH.proj[i], f)))
 
+# set the names of the columns for each dataframe:
 
+l.elevation <- lapply(l.elevation, \(i) i%>%magrittr::set_colnames(c('Name', 'Elev_Avg', 'Elev_Range', 'Elev_SD')))
 
+# remove first columns:
 
+l.elevation<-lapply(l.elevation, \(i) i%>%select(-1))
 
+# set names of list:
+
+names(l.elevation)<-df.sf$Name
+
+# create a df from list:
+
+df.elevation<-bind_rows(l.elevation, .id = 'CODE')
+
+# finally save the df:
+
+# save(df.elevation, file= 'Processed_Data/df.elevation.Rdata')
+
+load('Processed_Data/df.elevation.Rdata')
+
+#### Land Use: ####
+
+# download NLCD 2019:
+
+l.NLCD <- lapply(seq_along(df.sf$Name), \(i) get_nlcd(template = st_cast(df.sf, "MULTIPOLYGON")[i,], label = paste(df.sf$Name[i], '5'), year = 2019))
+
+# convert to SpatRaster (DEM was already downloaded as SpatRaster):
+
+l.NLCD<-lapply(l.NLCD, rast)
+
+# reproject to sample watershed vector data to match raster data:
+
+vect.NH.proj<-terra::project(vect.NH, crs(l.NLCD[[1]]))
+
+# extract frequency tables for each sample watershed
+
+l.NLCD <- lapply(seq_along(l.NLCD), \(i) terra::extract(l.NLCD[[i]], vect.NH.proj[i], ID=FALSE)%>%group_by_at(1)%>%summarize(Freq=round(n()/nrow(.),2)))
+
+# reclassify: to do this:
+
+# adjust the NLCD reclassify legend to match the CDL reclassify df made above:
+
+legend.NLCD<-legend
+legend.NLCD$Class3<-legend.NLCD$Class2
+legend.NLCD$Class3[c(13,17)]<-'Pasture'
+legend.NLCD$Class3[14]<-'Other'
+legend.NLCD$Class3[1]<-'Water'
+legend.NLCD$Class3[c(19,20)]<-'Wetlands_all'
+
+# reclassify the NLCD using this new legend and clean up the dataframe from the next step
+
+l.NLCD<-lapply(l.NLCD, \(i) left_join(as.data.frame(i), legend.NLCD%>%select(Class, Class3), by = 'Class')%>%mutate(Class = Class3)%>%select(-Class3))
+
+# pivot_wider the df in the lists and add a Name column for the site:
+
+l.NLCD<-lapply(seq_along(l.NLCD), \(i) l.NLCD[[i]]%>%group_by(Class)%>%summarise(Freq = sum(Freq))%>%pivot_wider(names_from = Class, values_from = Freq)%>%mutate(Name = df.sf$Name[i], .before = 1)%>%as.data.frame(.))
+
+# bind the lists into a single dataframe
+# note some of the sites have different length dtaframes because they didnt have all the same number of NLCD classes. When binding rows this will give a dataframe of the maximum length and put NAs for sites where there wasn't a column: 
+
+df.NLCD<-bind_rows(l.NLCD)%>%replace(is.na(.), 0) 
+
+# look at rowsums:
+
+x<-df.NLCD %>%mutate(sum = rowSums(across(where(is.numeric))))
+
+# they look good
+
+# save:
+
+# save(df.NLCD, file= 'Processed_Data/df.NLCD.Rdata')
+load('Processed_Data/df.elevation.Rdata')
+
+#### Combine Climate, Elevation, and land use dfs ####
+
+df.datalayers<-left_join(df.Climate_features, df.elevation, by = c('site_no'='CODE'))%>%left_join(., df.NLCD, by = c('site_no'='Name'))
+
+# not that only the three sites thatworked in the climate workflow are in this final dataframe
+# however there are three more sites in df.elevation and df.NLCD
+
+# save:
+
+# save(df.datalayers, file= 'Processed_Data/df.datalayers.Rdata')
+load('Processed_Data/df.elevation.Rdata')
 
