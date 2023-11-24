@@ -103,7 +103,7 @@ vect.NH<-vect(df.sf)
 
 # plot(vect.NH)
 # 
-mapview(df.sf, zcol = 'Name')
+# mapview(df.sf, zcol = 'Name')
 
 # calculate DA using terra SpatVector:
 
@@ -126,6 +126,12 @@ df.sites<-left_join(df.sites, df.sites.DA, by = 'CODE')%>%left_join(., df.sf%>%s
 # add difference column:
 
 df.sites<-mutate(df.sites, DA_error=(DA_sqkm-DA_sqkm_SS)/DA_sqkm)%>%arrange(desc(abs(DA_error)))
+
+# sites with over 10% error:
+
+x<-df.sites[abs(df.sites$DA_error)>=0.1,]
+
+mapview(x, zcol = "NAME")
 
 # remove sites with over %10 error:
 
@@ -327,6 +333,10 @@ for (i in 1:dim(vect.NH)[1]){
 # remove duplicate site+date combinations (should of removed duplicate dates before downloading climate data)
 
 df.Climate_features<-df.Climate_features%>%distinct(site_no, Date, .keep_all = TRUE)
+
+# remove first row:
+
+df.Climate_features<-df.Climate_features[-1,]
 
 # save df:
 
