@@ -65,3 +65,7 @@ for (i in ListOfSolutes) {
 ###              - Helpful for plotting actual vs predicted solute concentrations.        ###
 ###              - Also used to calculate NSE if the loop above doesn't do what you need. ###
 #############################################################################################
+
+importance(Modeled_Na)
+
+str(BEF)

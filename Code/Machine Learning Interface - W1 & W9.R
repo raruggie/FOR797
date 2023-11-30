@@ -6,6 +6,7 @@ library(data.table)
 library(randomForest)
 library(VSURF)
 library(ie2misc)
+library(plotly)
 
 # Run this line of code everytime you switch to a new watershed
 load(file = 'Processed_Data/Data&Models.Rdata')
@@ -96,13 +97,30 @@ ggplot(dfWatershed, aes(x=Cl, y=PredCl)) +
 
 summary(dfModelData)
 
+ListOfSolutes <- list("Cl", "NO3", "SO4", "Na", "K", 
+                      "Mg", "Ca", "NH4", "DON", "PO4", "DOC")
 
-data_test <- dfWatershed[ , c("NH4", "PredNH4")]
-lmPred2 = lm(PredNH4 ~ NH4, data = data_test)
+
+data_test <- dfWatershed[ , c("DOC", "PredDOC")]
+varNames <- colnames(data_test)
+varNames[2]
+lmPred2 = lm(PredDOC ~ DOC, data = data_test)
+r_squared <- summary(lmPred2)$r.squared
+ModelVar <- as.data.frame(coef(lmPred2))
+Inter <- ModelVar[1,1]
+Slope <- ModelVar[2,1]
 summary(lmPred2)
-fig<-plot_ly(data = data_test, x = ~NH4, y = ~PredNH4, type = 'scatter')
-fig <- fig %>% layout(title = varWatershed, yaxis = list(title = 'Predicted NH4 (mg/L)'), 
-                      xaxis = list(title = 'Grab Sample NH4 (mg/L)'))
+fig<-plot_ly(data = data_test, x = ~DOC, y = ~PredDOC, type = 'scatter')
+fig <- fig %>% layout(title = paste('W3 Model Predicting', varNames[1] ,'in W1'), 
+                      yaxis = list(title = 'Predicted DOC (mg/L)'), 
+                      xaxis = list(title = 'Grab Sample DOC (mg/L)'), 
+                      annotations =list(
+                        x = 4, y = 3.5,
+                        #xref = "paper", yref = "paper",
+                        text = paste(varNames[2], " = ", round(Slope, 3), "*", varNames[1], "+", round(Inter, 5), "\n", 
+                                     "R² = ", round(r_squared, 3)),
+                        showarrow = FALSE
+                      ))
 fig
 
 importance(Modeled_Mg)

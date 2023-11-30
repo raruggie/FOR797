@@ -29,11 +29,11 @@ W1TrainingData <- transform(W1TrainingData, NO3_corrected_mgL = as.numeric(NO3_c
 TrainX_Smart <- W1TrainingData[ , c("DOYSin", "DOYCos", "Flow15MinLiters", "NO3_corrected_mgL", "TempC", "Conductivity", "SpConductivity", "pH", "ODOPerCent", 
                          "ODOMGL", "TurbidityFNU", "TurbidityRaw", "FDOMRFU", "FDOM_corrected_QSU")]
 
-TrainX_Dumb <- W1TrainingData[ , c("FDOM_corrected_QSU", "NO3_corrected_mgL", "SpConductivity", "TempC", "DOYSin", "DOYCos")]
+TrainX_Dumb <- W3TrainingData[ , c("FDOM_corrected_QSU", "NO3_corrected_mgL", "SpConductivity", "TempC", "DOYSin", "DOYCos")]
 TrainX_Dumb_W1 <- W1TrainingData[ , c("FDOM_corrected_QSU", "NO3_corrected_mgL", "SpConductivity", "TempC", "DOYSin", "DOYCos")]
 TrainX_Dumb_W3 <- W3TrainingData[ , c("FDOM_corrected_QSU", "NO3_corrected_mgL", "SpConductivity", "TempC", "DOYSin", "DOYCos")]
 
-TrainY <- W1TrainingData[ , c("Ca", "Mg", "K", "Na", "TMAl", "OMAl", "Al_ICP", "NH4", 
+TrainY <- W3TrainingData[ , c("Ca", "Mg", "K", "Na", "TMAl", "OMAl", "Al_ICP", "NH4", 
                          "SO4", "NO3", "Cl", "PO4", "DOC", "TDN", "DON", "SiO2", 
                          "Mn", "Fe", "F")]
 TrainY_W1 <- W1TrainingData[ , c("Ca", "Mg", "K", "Na", "TMAl", "OMAl", "Al_ICP", "NH4", 
@@ -61,7 +61,7 @@ for (i in colnames(TrainY)) {
     SelectedX <- TrainX_Dumb %>% select(vsurfVar$varselect.interp)
     }
   mod <- randomForest(SelectedX, TrainY[[i]])
-  assign(paste("Modeled_", i,"_W1_with_W3_Param", sep = ""), mod)
+  assign(paste("Modeled_", i,"_W3", sep = ""), mod)
   #assign(paste("Modeled_", i, sep = ""), mod)
   
   #eval(parse(text = paste("ImportanceDf <- as.data.frame(importance(Modeled_", i,"_W3))", sep = "")))
@@ -93,6 +93,14 @@ partialPlot(Modeled_DOC_W3_with_W1_Param, TrainX_Dumb_W3, FDOM_corrected_QSU)
 partialPlot(Modeled_DOC_W1, TrainX_Dumb_W3, NO3_corrected_mgL)
 partialPlot(Modeled_DOC_W3_with_W1_Param, TrainX_Dumb_W3, NO3_corrected_mgL)
 
+###
+partialPlot(Modeled_DOC_W3, TrainX_Dumb_W3, FDOM_corrected_QSU)
+partialPlot(Modeled_DOC_W1_with_W3_Param, TrainX_Dumb_W3, FDOM_corrected_QSU)
+
+partialPlot(Modeled_DOC_W3, TrainX_Dumb_W3, NO3_corrected_mgL)
+partialPlot(Modeled_DOC_W1_with_W3_Param, TrainX_Dumb_W3, NO3_corrected_mgL)
+###
+
 importance(Modeled_DOC_W1)
 importance(Modeled_DOC_W3_with_W1_Param)
 
@@ -114,7 +122,7 @@ fig
 
 
 
-
+write.csv(W3TrainingData, "Processed_Data/W3TrainingData.csv", row.names=FALSE)
 
 
 rm(list = c('mod', 'NewX_Dumb', 'NewX_Smart', 'SelectedX', 'TrainX_Dumb', 
@@ -122,7 +130,7 @@ rm(list = c('mod', 'NewX_Dumb', 'NewX_Smart', 'SelectedX', 'TrainX_Dumb',
 
 
 
-save.image(file = 'Processed_Data/Data&Models.Rdata')
+#save.image(file = 'Processed_Data/Data&Models.Rdata')
 
 #########################################################################################################
 ### Ignore below this line. The code below was useful when creating other plots but you won't need it ###
