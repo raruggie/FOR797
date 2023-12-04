@@ -2,7 +2,6 @@
 ####################### Load packages #######################
 
 library(FedData)
-library(streamstats)
 library(sf)
 library(climateR)
 library(tidyverse)
@@ -18,17 +17,37 @@ source("Code/Ryan_functions.R")
 
 sf_use_s2(TRUE) # for sf
 
-setTimeout(1000) # for streamstats api
-
 ####################### variables #######################
 
 meters_to_miles = 1/1609.334
 
-# create the custom reclassified legend (needed below):
+# aggregate CDL: to do this:
+# looking at the CDL legend (linkdata), I determined the following:
 
-legend<-pal_nlcd()%>%mutate(ID2=c(1,2,3,3,3,3,2,4,4,4,4,4,5,5,2,2,6,7,8,8))
-legend_2<-data.frame(ID2 = unique(legend$ID2))%>% mutate(Class2 = c("Open Water", "Other", "Developed", "Forest", "Grassland", "Pasture/Hay", "Cultivated Crops", "Wetlands"))
-legend<-left_join(legend, legend_2, by = 'ID2')
+Ag<-c(1:6,10:14,21:39,41:61,66:72,74:77,204:214,216:227,229:250,254)
+Pasture<-c(176)
+Forest<-c(63,141:143)
+Developed<-c(82,121:124)
+Water<-c(83,111)
+Wetlands_all<-c(87,190,195)
+Other<-c(64,65,88,112,131,152) # Shrub<-c(64,152) Barren<-c()
+
+l <- tibble::lst(Ag,Pasture,Forest,Developed,Water,Wetlands_all,Other)
+
+reclass_CDL<-data.frame(lapply(l, `length<-`, max(lengths(l))))%>%
+  pivot_longer(cols = everything(), values_to = 'MasterCat',names_to = 'Crop')%>%
+  drop_na(MasterCat)
+
+# adjust the NLCD reclassify legend to match the CDL reclassify df made above:
+
+legend.NWIS<-legend
+legend.NWIS$Class3[c(13,17)]<-'Pasture'
+legend.NWIS$Class3[14]<-'Other';
+legend.NWIS$Class3[1]<-'Water';
+legend.NWIS$Class3[c(19,20)]<-'Wetlands_all'
+
+sort(unique(legend.NWIS$Class3))==sort(unique(reclass_CDL$Crop))
+
 
 ####################### download watershed #######################
 
@@ -42,76 +61,34 @@ df.sites<-st_as_sf(df.sites, coords = c("LONGITUDE", "LATITUDE"), crs = 4326, re
 
 # look at map of sites:
 
-mapview(df.sites, zcol = 'CODE')
+# mapview(df.sites, zcol = 'CODE')
 
-# NHD (not run):
+# read in watershed shapefiles (!!):
 
-#### NHD ####
-# 
-# # download NHD for NH:
-# 
-# nhd<-nhd_get(state = 'NH',force_unzip = TRUE,temporary = FALSE)
-# 
-# # read NHD flowline into R session:
-# 
-# fp <- nhd_load(c("NH"), c("NHDFlowLine"))
-# 
-# mapview(df.sites,zcol = 'CODE')+mapview(fp)
-# 
-# # filter NHD linestrings to those within 100 meters of points: to do this:
-# 
-# # create a 100 meter buffer around points:
-# 
-# circle <- st_buffer(df.sites, 100)
-# 
-# # determien which flowlines intersect the buffer polygons:
-# 
-# x<-vect(fp)
-# 
-# y<-vect(circle)
-# 
-# z<-terra::intersect(y,x)
-# 
-# mapview(x)
-# 
-# mapview(circle)
-
-#### end NHD ####
-
-# delineate using streamstats::delineateWatershed inside lapply:
-
-# l.SS_WS<-lapply(seq_along(df.sites$CODE), \(i) Delineate(df.sites$LONGITUDE[i], df.sites$LATITUDE[i]))
-
-# set names of list to site abbrv.:
-
-# names(l.SS_WS)<-df.sites$CODE
-
-# covert from list of watersheds to sf dataframe:
-
-# df.sf<-fun.l.SS_WS.to.sfdf(l.SS_WS) # this takes a minute
-
-# save (since delinateate watershed and convert to sfdf takes a longtime to run):
-
-# save(df.sf, file = 'Processed_Data/df.sf.Rdata')
-load('Processed_Data/df.sf.Rdata')
-
-# convert to SpatVector:
-
-vect.NH<-vect(df.sf)
+df.ws<-st_read('Raw_Data/EPSCoR_wsheds6_gdb/EPSCoR_wsheds6.shp')
 
 # look at map:
 
-# plot(vect.NH)
-# 
-# mapview(df.sf, zcol = 'Name')
+# mapview(df.sites, zcol = 'CODE')+mapview(df.ws, zcol = 'Site_Key')
+
+# change three letter site key column in df.ws to match that of df.sites
+
+dput(df.ws$Site_Key)
+
+df.ws$Site_Key<-c("TPB", "BEF", "BDC", "HBF", "GOF", "DCF", "SBM", "WHB", 
+  "LMP", "MCQ")
+
+# convert to SpatVector:
+
+vect.NH<-vect(df.ws)
 
 # calculate DA using terra SpatVector:
 
 vect.NH$area_KM2<-expanse(vect.NH, unit="km")
 
-# add DA in mi2 to df.sf:
+# add DA in km2 to df.ws:
 
-df.sf$DA_sqkm_SS<-expanse(vect.NH, unit="km")
+df.ws$DA_sqkm_calculated<-expanse(vect.NH, unit="km")
 
 # compare to DA listed in the paper:
 
@@ -119,31 +96,15 @@ df.sf$DA_sqkm_SS<-expanse(vect.NH, unit="km")
 
 df.sites.DA<-read.csv('Raw_Data/stations_DA.csv')
 
-# merge DA dfs to station data:
+# merge DA df with df.ws:
 
-df.sites<-left_join(df.sites, df.sites.DA, by = 'CODE')%>%left_join(., df.sf%>%st_set_geometry(NULL)%>%select(Name, DA_sqkm_SS), by= c('CODE'='Name'))
+df.ws<-left_join(df.ws, df.sites.DA, by = c('Site_Key'='CODE'))
 
 # add difference column:
 
-df.sites<-mutate(df.sites, DA_error=(DA_sqkm-DA_sqkm_SS)/DA_sqkm)%>%arrange(desc(abs(DA_error)))
+df.ws<-mutate(df.ws, DA_error=(DA_sqkm-DA_sqkm_calculated)/DA_sqkm)%>%arrange(desc(abs(DA_error)))
 
-# sites with over 10% error:
-
-x<-df.sites[abs(df.sites$DA_error)>=0.1,]
-
-mapview(x, zcol = "NAME")
-
-# remove sites with over %10 error:
-
-df.sites<-filter(df.sites, abs(DA_error)<0.1)
-df.sf<-filter(df.sf, Name %in% df.sites$CODE)
-vect.NH<-vect(df.sf)
-
-# look at map of sites outlet point and delination:
-
-# mapview(df.sites, zcol = 'CODE')+mapview(df.sf, zcol = 'Name')
-
-# ask Mark if these look like the watersheds for the sites
+# they look good!!
 
 ####################### Data Layers workflow #######################
 
@@ -161,15 +122,133 @@ dfHydroGrab<-na.omit(dfHydroGrab)
 dfHydroGrab<-dfHydroGrab%>%mutate(DATETIME = as.Date(DATETIME))%>%
   distinct(Sample.Name, DATETIME, .keep_all = TRUE)
 
-#### Climate: ####
+# remove sites not in df.ws:
+
+dfHydroGrab<-dfHydroGrab%>%filter(Sample.Name %in% df.ws$Site_Key)
+
+#### Land Use, NLCD ####
+
+# download the 2016 NLCD for the watersheds into a list of Rasters:
+
+l.NLCD.2016 <- lapply(seq_along(df.ws$Site_Key), \(i) get_nlcd(template = st_cast(df.ws, "MULTIPOLYGON")[i,], label = as.character(i), year = 2016))
+
+# convert to SpatRasters:
+
+l.NLCD.2016 <- lapply(l.NLCD.2016, rast)
+
+# reproject to watershed vector data to match raster data crs:
+
+vect.NH.proj<-terra::project(vect.NH, crs(l.NLCD.2016[[1]]))
+
+# extract frequency tables for each sample watershed
+# this returns a dataframe for each list element: (take a minute to run)
+
+l.df.NLCD.2016 <- lapply(seq_along(l.NLCD.2016), \(i) terra::extract(l.NLCD.2016[[i]], vect.NH.proj[i], ID=FALSE)%>%group_by_at(1)%>%summarize(Freq=round(n()/nrow(.),2)))
+
+# reclassify the NLCD using legend and clean up the dataframe from the next step
+
+l.df.NLCD.2016<-lapply(l.df.NLCD.2016, \(i) left_join(as.data.frame(i), legend.NWIS%>%select(Class, Class3), by = 'Class')%>%mutate(Class = Class3)%>%select(-Class3))
+
+l.df.NLCD.2016<-lapply(seq_along(l.df.NLCD.2016), \(i) l.df.NLCD.2016[[i]]%>%group_by(Class)%>%summarise(Freq = sum(Freq))%>%pivot_wider(names_from = Class, values_from = Freq)%>%mutate(Name = df.ws$Site_Key[i], .before = 1)%>%as.data.frame(.))
+
+# bind list into single df:
+
+df.NLCD<-bind_rows(l.df.NLCD.2016)
+
+# Check row sums
+
+rowSums(df.NLCD[,-1], na.rm = T)  # looks good
+
+#### Elevation, NED ####
+
+# download DEM. This will be a single raster for the entire study area, so watch out if this might be to big of an area:
+
+DEM.NH<-get_ned(df.ws, label = '1') # already SpatRaster!
+
+# extract elevation metrics over each sample watershed: to do this:
+# build a function with multiple functions:
+
+f <- function(x, na.rm = T) {
+  c(mean=mean(x, na.rm = na.rm),
+    range=max(x, na.rm = na.rm)-min(x, na.rm = na.rm),
+    sd=sd(x, na.rm = na.rm)
+  )
+}
+
+# reproject NH basins to DEM crs:
+
+vect.NH.proj<-terra::project(vect.NH, crs(DEM.NH))
+
+# extract the metrics over each watershed using the function above:
+
+df.DEM.NH <- as.data.frame(terra::extract(DEM.NH, vect.NH.proj, f))
+
+# set the names of the df:
+
+names(df.DEM.NH)<-c('Name', 'Elev_Avg', 'Elev_Range', 'Elev_SD')
+
+# set the names of the sites:
+
+df.DEM.NH$Name<-df.ws$Site_Key
+
+#### Climate (not run) ####
+
+# the following climate variables are available for gridmet:
+
+input_string<-'sph: (Near-Surface Specific Humidity)
+vpd: (Mean Vapor Pressure Deficit)
+pr: (Precipitation)
+rmin: (Minimum Near-Surface Relative Humidity)
+rmax: (Maximum Near-Surface Relative Humidity)
+srad: (Surface Downwelling Solar Radiation)
+tmmn: (Minimum Near-Surface Air Temperature)
+tmmx: (Maximum Near-Surface Air Temperature)
+vs: (Wind speed at 10 m)
+th: (Wind direction at 10 m)
+pdsi: (Palmer Drought Severity Index)
+pet: (Reference grass evaportranspiration)
+etr: (Reference alfalfa evaportranspiration)
+erc: (model-G)
+bi: (model-G)
+fm100: (100-hour dead fuel moisture)
+fm1000: (1000-hour dead fuel moisture)'
+
+# Split the string by line breaks
+
+lines <- strsplit(input_string, "\n")[[1]]
+
+# Extract the text before each colon
+
+result_vector <- as.character(sapply(lines, function(line) {
+  parts <- strsplit(line, ":")[[1]]
+  trimws(parts[1])
+}))
+
+# I want to download all these values for each watershed and date combination
+
+i<-1
+j<-1
+k<-1
+
+for (i in seq_along(result_vector)){
+  for (j in seq_along(df.ws$Site_Key)){
+    df.j<-dfHydroGrab%>%filter(Sample.Name == df.ws$Site_Key[j])
+    for (k in seq_along(df.j$DATETIME)){
+      rast.k<-getGridMET(vect.NH[j,], varname = result_vector[i], startDate = df.j$DATETIME[k]-21, endDate = df.j$DATETIME[k])[[1]]
+    }
+  }
+}
+
+plot(vect.NH[j,])
+mapview(df.ws[df.ws$Site_Key=='TPB',])
+
+
 
 # 1(24 hr),2,3,4,5,10,14 and 21 day cumulative rainfall prior to sample date
 # 0,1(24 hr),2,3,4,5,10,14 and 21 day lag in tmax and tmin:
 # 1(24 hr),2,3,4,5,10,14 and 21 day delta in tmax and tmin:
 
-# so the resulting climate df will have:
-# 2 (site, date) + 8 (rainfall cummulatives) + 9*2 (tmax and tmin lags) + 8*2 (tmax and tmin deltas)
-# = 2+8+9*2+8*2 = 44 columns
+
 
 # create vectors of climate variables:
 
