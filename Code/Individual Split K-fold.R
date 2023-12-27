@@ -30,17 +30,16 @@ for (o in paramList) {
 #"LMP", "MCQ", "SBM", "TPB", "WHB", "W1", "W3", "W9")
 Watersheds <- list("W9")
 
-dfTraining <- Training_DCF
+dfTraining <- Training_MCQ
 
 YSolutes <- list("Cl", "NO3", "SO4", "Na", "K", 
 "Mg", "Ca", "NH4", "DON", "PO4", "DOC")
 
 
-
 knum <- 5
-kreps <- 1
+kreps <- 6
 seq_along(1:(knum*kreps))
-YSolutes[[1]]
+#YSolutes[[1]]
 set.seed=500
 
 VNSERepository <- setNames(data.frame(matrix(ncol = 11, nrow = (knum*kreps))), YSolutes)
@@ -49,23 +48,23 @@ VNSERepository <- setNames(data.frame(matrix(ncol = 11, nrow = (knum*kreps))), Y
 
 for (i in seq_along(1:length(YSolutes))) {
   
-  eval(parse(text = paste("folds <- create_folds(Training_DCF$", YSolutes[[i]], ", k = knum, seed = 2734, m_rep = kreps)",sep = "")))
+  eval(parse(text = paste("folds <- create_folds(dfTraining$", YSolutes[[i]], ", k = knum, seed = 2734, m_rep = kreps, type = 'stratified')",sep = "")))
   
   print(YSolutes[[i]])
   rowNum <- 1
   for (j in seq_along(folds)) {
     print(j)
   
-    #insample <- Training_DCF[folds[[j]], ]
-    #out <- Training_DCF[folds[[j]], ]
-    #out <- Training_DCF
+    insample <- dfTraining[folds[[j]], ]
+    out <- dfTraining[-folds[[j]], ]
+    #out <- Training_BDC
     
-    insample <- dfTraining[-folds[[j]], ]
-    out <- dfTraining[folds[[j]], ]
+    #insample <- dfTraining[folds[[j]], ]
+    #out <- dfTraining[-folds[[j]], ]
     
     
-    #dfTraining <- dfMaster[dfMaster$Watershed != "W9"]
-    #insample <- do.call("rbind", list(dfTraining, insample))
+    #dfTrainingTemp <- dfMaster[dfMaster$Watershed != "TPB"]
+    #insample <- do.call("rbind", list(dfTrainingTemp, insample))
     #insample <- Training_DCF
     #insample <- dfTraining
     
@@ -73,8 +72,20 @@ for (i in seq_along(1:length(YSolutes))) {
     TrainY <- insample[ , c("Cl", "NO3", "SO4", "Na", "K", 
     "Mg", "Ca", "NH4", "DON", "PO4", "DOC")]
     
-    eval(parse(text = paste("SelectedX <- TrainX_Dumb %>% select(all_of(Master_Params_", YSolutes[[i]], "))", sep="")))
+    #print(i)
+    set.seed=500
+    #vsurfVar <- VSURF(TrainX_Dumb, TrainY[[i]], mtry = 100)
+    #SelectedX <- TrainX_Dumb %>% select(vsurfVar$varselect.pred)
+    #if (nrow(SelectedX) == 0) {
+    #  SelectedX <- TrainX_Dumb %>% select(vsurfVar$varselect.interp)
+    #}
+    #mod <- randomForest(SelectedX, TrainY[[i]])
     
+    
+    
+    
+    
+    eval(parse(text = paste("SelectedX <- TrainX_Dumb %>% select(all_of(Master_Params_", YSolutes[[i]], "))", sep="")))
     mod <- randomForest(SelectedX, TrainY[[i]])
   
     eval(parse(text = paste("VNSERepository[", rowNum, ",", i, "] <- vnse(out$", YSolutes[[i]],", predict(mod, out))", sep = "")))
@@ -88,4 +99,5 @@ summary(VNSERepository)
 #sapply(mtcars, function(x) c(summary(x), type = class(x)))
 SumStats <- sapply(VNSERepository, function(x) c(summary(x), type = class(x)))
 
-#write.csv(SumStats, file = 'Models/MasterKFoldTests/W3_NoMaster_95.csv')
+#write.csv(SumStats, file = 'Models/ProperTrainAndTestSplits/MCQ8020.csv')
+#write.csv(SumStats, file = 'Models/MasterKFoldTests/MasterAndBDC.csv')
